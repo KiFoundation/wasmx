@@ -5,11 +5,19 @@ import (
 )
 
 // SaveContract allows to save the given contract into the database.
-func (db Db) SaveContract(contract types.Contract) error {
+func (db Db) SaveContract(contract types.Contract, gas, fees int64) error {
 	stmt := `
-INSERT INTO contracts (code_id, address, creator, admin, label, creation_time, height) 
-VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	_, err := db.Sql.Exec(stmt, contract.CodeID, contract.Address, contract.Creator, contract.Admin, contract.Label, contract.CreatedTime, contract.Created.BlockHeight)
+INSERT INTO contracts (code_id, address, creator, admin, label, creation_time, height, gas, fees) 
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	_, err := db.Sql.Exec(stmt, contract.CodeID, contract.Address, contract.Creator, contract.Admin, contract.Label, contract.CreatedTime, contract.Created.BlockHeight, gas, fees)
+	return err
+}
+
+// UpdateContractStats update stats by contract call.
+func (db Db) UpdateContractStats(contract string, tx, gas, fees int64) error {
+	stmt := `
+UPDATE contracts SET tx=tx+$2, gas=gas+$3, fees=fees+$4 WHERE address = $1`
+	_, err := db.Sql.Exec(stmt, contract, tx, gas, fees)
 	return err
 }
 

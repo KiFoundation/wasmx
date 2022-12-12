@@ -5,7 +5,7 @@ import (
 
 	"github.com/forbole/juno/v3/database"
 	"github.com/forbole/juno/v3/database/postgresql"
-	juno "github.com/forbole/juno/v3/types"
+	//juno "github.com/forbole/juno/v3/types"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -42,7 +42,7 @@ func Builder(ctx *database.Context) (database.Database, error) {
 		Sqlx:     sqlx.NewDb(psqlDb.Sql, "postgresql"),
 	}, nil
 }
-
+/*
 // SaveTx overrides postgresql.Database to perform a no-op
 func (db *Db) SaveTx(_ *juno.Tx) error {
 	return nil
@@ -67,3 +67,4 @@ func (db *Db) SaveCommitSignatures(_ []*juno.CommitSig) error {
 func (db *Db) SaveMessage(_ *juno.Message) error {
 	return nil
 }
+*/

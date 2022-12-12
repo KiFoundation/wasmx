@@ -68,7 +68,7 @@ Description=WasmX parser
 After=network-online.target
 
 [Service]
-User=$USER
+User=root
 ExecStart=$GOPATH/bin/wasmx start
 Restart=always
 RestartSec=3
