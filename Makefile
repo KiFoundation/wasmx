@@ -19,10 +19,6 @@ ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
-# check for nostrip option
-ifeq (,$(findstring nostrip,$(KID_BUILD_OPTIONS)))
-  BUILD_FLAGS += -trimpath
-endif
 
 
 
