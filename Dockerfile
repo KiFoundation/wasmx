@@ -16,11 +16,11 @@
 #
 # To exit the bash, just execute
 # > exit
-FROM golang:alpine AS build-env
+FROM --platform=linux/amd64 golang:alpine AS build-env
 
 # Install dependencies
 RUN apk update && \
-    apk add --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev py-pip ca-certificates 
+    apk add --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev py-pip ca-certificates build-base python3
 
 # Set working directory for the build
 WORKDIR /wasmx
@@ -29,14 +29,14 @@ WORKDIR /wasmx
 COPY . .
 
 # See https://github.com/CosmWasm/wasmvm/releases
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
-RUN sha256sum /lib/libwasmvm_muslc.a | grep 2ea10ad5e489b5ede1aa4061d4afa8b2ddd39718ba7b8689690b9c07a41d678e
+ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
+RUN sha256sum /lib/libwasmvm_muslc.a | grep f6282df732a13dec836cda1f399dd874b1e3163504dbd9607c6af915b2740479
 
 # Build binary
-RUN make install
+RUN BUILD_TAGS=muslc LINK_STATICALLY=true make install
 
 # Final image
-FROM alpine:edge
+FROM --platform=linux/amd64 alpine:edge
 
 # Install ca-certificates
 RUN apk add --update ca-certificates

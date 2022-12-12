@@ -4,16 +4,33 @@ DOCKER := $(shell which docker)
 
 export GO111MODULE = on
 
+
+ldflags = -X github.com/forbole/juno/v3/cmd.Version=$(VERSION) \
+	-X github.com/forbole/juno/v3/cmd.Commit=$(COMMIT)
+
+build_tags += $(BUILD_TAGS)
+build_tags := $(strip $(build_tags))
+
+ifeq ($(LINK_STATICALLY),true)
+  ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
+endif
+
+ldflags += $(LDFLAGS)
+ldflags := $(strip $(ldflags))
+
+BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
+# check for nostrip option
+ifeq (,$(findstring nostrip,$(KID_BUILD_OPTIONS)))
+  BUILD_FLAGS += -trimpath
+endif
+
+
+
 all: ci-lint ci-test install
 
 ###############################################################################
 # Build / Install
 ###############################################################################
-
-LD_FLAGS = -X github.com/forbole/juno/v3/cmd.Version=$(VERSION) \
-	-X github.com/forbole/juno/v3/cmd.Commit=$(COMMIT)
-
-BUILD_FLAGS := -ldflags '$(LD_FLAGS)'
 
 build: go.sum
 ifeq ($(OS),Windows_NT)
@@ -27,6 +44,18 @@ endif
 install: go.sum
 	@echo "installing wasmx binary..."
 	@go install -mod=readonly $(BUILD_FLAGS) ./cmd/wasmx
+
+build-reproducible: go.sum
+	$(DOCKER) rm $(subst /,-,latest-build-wasmx) || true
+	DOCKER_BUILDKIT=1 $(DOCKER) build -t latest-build-wasmx \
+		--build-arg COMMIT="$(COMMIT)" \
+		--build-arg VERSION="$(VERSION)" \
+		-f Dockerfile .
+	$(DOCKER) create -ti --name $(subst /,-,latest-build-wasmx) latest-build-wasmx wasmx
+	mkdir -p $(CURDIR)/build/
+	$(DOCKER) cp -a $(subst /,-,latest-build-wasmx):/usr/bin/wasmx $(CURDIR)/build/wasmx
+
+
 
 ###############################################################################
 # Tests / CI
